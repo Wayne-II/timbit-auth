@@ -8,7 +8,7 @@ database_name = 'timbit_trader'
 
 class BaseConfig:
     """Base configuration."""
-    SECRET_KEY = 'my_precious'
+    SECRET_KEY = os.getenv( "SECRET_KEY", 'default_testing_value:my_precious')
     DEBUG = False
     BCRYPT_LOG_ROUNDS = 13
     SQLALCHEMY_TRACK_MODIFICATIONS = False
