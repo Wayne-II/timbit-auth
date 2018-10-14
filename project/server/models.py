@@ -45,11 +45,15 @@ class User(db.Model):
 
 		try:
 			payload = jwt.decode( auth_token, app.config.get( 'SECRET_KEY' ) )
-			return payload[ 'sub' ]
-		except jwd.ExpiredSignatureError:
-			return 'signature expired. please log in again.'
+			is_blacklisted_token = BlacklistToken.check_blacklist( auth_token )
+			if is_blacklisted_token:
+				return 'Token blacklisted. Please log in again.'
+			else:
+				return payload[ 'sub' ]
+		except jwt.ExpiredSignatureError:
+			return 'Signature expired. Please log in again.'
 		except jwt.InvalidTokenError:
-			return 'invalid token.  please log in again.'
+			return 'Invalid token.  Please log in again.'
 
 
 
@@ -60,3 +64,30 @@ class User(db.Model):
 		).decode()
 		self.registered_on = datetime.datetime.now()
 		self.admin = admin
+
+
+class BlacklistToken(db.Model):
+	"""
+	Token Model for storing JWT tokens
+	"""
+	__tablename__ = 'blacklist_tokens'
+
+	id = db.Column(db.Integer, primary_key=True, autoincrement=True)
+	token = db.Column(db.String(500), unique=True, nullable=False)
+	blacklisted_on = db.Column(db.DateTime, nullable=False)
+
+	def __init__(self, token):
+		self.token = token
+		self.blacklisted_on = datetime.datetime.now()
+
+	def __repr__(self):
+		return '<id: token: {}'.format(self.token)
+
+	@staticmethod
+	def check_blacklist(auth_token):
+		# check whether auth token has been blacklisted
+		res = BlacklistToken.query.filter_by(token=str(auth_token)).first()
+		if res:
+			return True
+		else:
+			return False
