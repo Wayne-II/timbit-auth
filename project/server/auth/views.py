@@ -20,9 +20,13 @@ class RegisterAPI( MethodView ):
 		user = User.query.filter_by( email=post_data.get( 'email' ) ).first()
 		if not user:#valid new user
 			try:
+
+
+				email = post_data.get( 'email' )
+				password=post_data.get( 'password' )
 				user = User(
-					email=post_data.get( 'email' ),
-					password=post_data.get( 'password' )
+					email=email,
+					password=password
 				)
 
 				#store the user
@@ -32,27 +36,28 @@ class RegisterAPI( MethodView ):
 				#generate auth token for auth on registration
 				#questionable
 				auth_token = user.encode_auth_token( user.id )
+
 				responseObject = {
 					'status': 'success',
 					'message': 'Successfully registered.',
 					'auth_token':auth_token.decode()
 				}
-				#TODO research this interesting syntax
-				return make_response( jsonify( responseObject ) ), 201
+
+				return ( make_response( jsonify( responseObject ) ), 201 )
 			except Exception as e:
 				responseObject = {
-					'status': 'fail',
+					'status': 'failure',
 					'message': 'Error occurrred.',
+					'user':user,
+					'error':str(e.message)
 				}
-				#TODO research this interesting syntax
-				return make_response( jsonify( responseObject ) ), 500
+				return ( make_response( jsonify( responseObject ) ), 500 )
 		else:
 			responseObject = {
-				'status': 'fail',
+				'status': 'failure',
 				'message': 'User not available',
 			}
-			#TODO research this interesting syntax
-			return make_response( jsonify( responseObject ) ), 202
+			return ( make_response( jsonify( responseObject ) ), 409 )
 
 class LoginAPI(MethodView):
 	"""
@@ -68,20 +73,20 @@ class LoginAPI(MethodView):
 			  ).first()
 			if( not user ):
 				responseObject = {
-					'status':'fail',
+					'status':'failure',
 					'message':'User does not exist.'
 				}
-				return make_response( jsonify( responseObject ) ), 401
+				return ( make_response( jsonify( responseObject ) ), 401 )
 
 
 			if( not bcrypt.check_password_hash(
 				user.password, post_data.get( 'password' )
 			) ):
 				responseObject = {
-					'status':'fail',
+					'status':'failure',
 					'message':'Password incorrect.'
 				}
-				return make_response( jsonify( responseObject ) ), 401
+				return ( make_response( jsonify( responseObject ) ), 401 )
 
 			auth_token = user.encode_auth_token(user.id)
 			#TODO: if not auth_token
@@ -91,20 +96,20 @@ class LoginAPI(MethodView):
 					'message': 'Successfully logged in.',
 					'auth_token': auth_token.decode()
 				}
-				return make_response(jsonify(responseObject)), 200
+				return ( make_response( jsonify( responseObject ) ), 200 )
 			else:
 				responseObject = {
-					'status':'fail',
+					'status':'failure',
 					'message':'Error authenticating.  Contact Admin..'
 				}
-				return make_response( jsonify( responseObject ) ), 500
+				return ( make_response( jsonify( responseObject ) ), 500 )
 		except Exception as e:
 			print(e)
 			responseObject = {
-				'status': 'fail',
+				'status': 'failure',
 				'message': 'Error occurrred.'
 			}
-			return make_response(jsonify(responseObject)), 500
+			return ( make_response( jsonify( responseObject ) ), 500 )
 
 class LogoutAPI(MethodView):
 	"""
@@ -130,25 +135,25 @@ class LogoutAPI(MethodView):
 						'status': 'success',
 						'message': 'Successfully logged out.'
 					}
-					return make_response(jsonify(responseObject)), 200
+					return ( make_response( jsonify( responseObject ) ), 200 )
 				except Exception as e:
 					responseObject = {
-						'status': 'fail',
+						'status': 'failure',
 						'message': e
 					}
-					return make_response(jsonify(responseObject)), 200
+					return ( make_response( jsonify( responseObject ) ), 200 )
 			else:
 				responseObject = {
-					'status': 'fail',
+					'status': 'failure',
 					'message': resp
 				}
-				return make_response(jsonify(responseObject)), 401
+				return ( make_response( jsonify( responseObject ) ), 401 )
 		else:
 			responseObject = {
-				'status': 'fail',
+				'status': 'failure',
 				'message': 'Provide a valid auth token.'
 			}
-			return make_response(jsonify(responseObject)), 403
+			return ( make_response( jsonify( responseObject ) ), 403 )
 
 class UserAPI(MethodView):
 	"""
@@ -162,10 +167,10 @@ class UserAPI(MethodView):
 				auth_token = auth_header.split(" ")[1]
 			except IndexError:
 				responseObject = {
-					'status': 'fail',
+					'status': 'failure',
 					'message': 'Bearer token malformed.'
 				}
-				return make_response(jsonify(responseObject)), 401
+				return ( make_response( jsonify( responseObject ) ), 401 )
 		else:
 			auth_token = ''
 		if auth_token:
@@ -181,18 +186,18 @@ class UserAPI(MethodView):
 						'registered_on': user.registered_on
 					}
 				}
-				return make_response(jsonify(responseObject)), 200
+				return ( make_response( jsonify( responseObject ) ), 200 )
 			responseObject = {
-				'status': 'fail',
+				'status': 'failure',
 				'message': resp
 			}
-			return make_response(jsonify(responseObject)), 401
+			return ( make_response( jsonify( responseObject ) ), 401 )
 		else:
 			responseObject = {
-				'status': 'fail',
+				'status': 'failure',
 				'message': 'Provide a valid auth token.'
 			}
-			return make_response(jsonify(responseObject)), 401
+			return ( make_response( jsonify( responseObject ) ), 401 )
 
 #define API resource
 registration_view = RegisterAPI.as_view( 'register_api' )

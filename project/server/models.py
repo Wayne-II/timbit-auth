@@ -2,6 +2,8 @@
 
 import datetime
 import jwt
+import base64
+import os
 
 from project.server import app, db, bcrypt
 
@@ -15,6 +17,7 @@ class User(db.Model):
 	password = db.Column(db.String(255), nullable=False)
 	registered_on = db.Column(db.DateTime, nullable=False)
 	admin = db.Column(db.Boolean, nullable=False, default=False)
+	otp_secret = db.Column( db.String( 16 ) )
 
 	def encode_auth_token(self, user_id):
 		"""
@@ -55,7 +58,13 @@ class User(db.Model):
 		except jwt.InvalidTokenError:
 			return 'Invalid token.  Please log in again.'
 
+	def get_totp_uri( self ):
+		uriFormatKArgs = { email:self.email, otp_secret:self.otp_secret }
+		return 'otpauth://totp/TimbitTrader:{email}?secret={otp_secret}&issuer=TimbitTrader'.format( **uriFormatKArgs )
 
+	def validate_totp( self, token ):
+		totp = pyotp.TOTP('base32secret3232')
+		return totp.verify( token )
 
 	def __init__(self, email, password, admin=False):
 		self.email = email
@@ -64,6 +73,8 @@ class User(db.Model):
 		).decode()
 		self.registered_on = datetime.datetime.now()
 		self.admin = admin
+		if self.otp_secret is None:
+			self.otp_secret = base64.b32encode( os.urandom( 10 ) ).decode( 'utf-8' )
 
 
 class BlacklistToken(db.Model):
