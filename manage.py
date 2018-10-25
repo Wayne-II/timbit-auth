@@ -20,6 +20,10 @@ COV = coverage.coverage(
 COV.start()
 
 from project.server import app, db, models
+<<<<<<< HEAD
+=======
+
+>>>>>>> jwt-auth
 
 migrate = Migrate(app, db)
 manager = Manager(app)

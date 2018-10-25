@@ -10,5 +10,8 @@ __pycache__
 *.coverage
 .DS_Store
 env.sh
+<<<<<<< HEAD
 migrations
 *.idea
+=======
+>>>>>>> jwt-auth

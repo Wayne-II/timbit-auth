@@ -3,12 +3,20 @@
 import os
 basedir = os.path.abspath(os.path.dirname(__file__))
 postgres_local_base = 'postgresql://postgres:@localhost/'
+<<<<<<< HEAD
 database_name = 'flask_jwt_auth'
+=======
+database_name = 'timbit_trader'
+>>>>>>> jwt-auth
 
 
 class BaseConfig:
     """Base configuration."""
+<<<<<<< HEAD
     SECRET_KEY = os.getenv('SECRET_KEY', 'my_precious')
+=======
+    SECRET_KEY = os.getenv( "SECRET_KEY", 'default_testing_value:my_precious')
+>>>>>>> jwt-auth
     DEBUG = False
     BCRYPT_LOG_ROUNDS = 13
     SQLALCHEMY_TRACK_MODIFICATIONS = False
